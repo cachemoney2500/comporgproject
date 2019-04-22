@@ -29,6 +29,55 @@ int store_reg(char * str,int * s_or_t){
     return str[j+3]-'0';
 }
 
+//function that checks one of the argument registers is used
+//as a store register in another instruction
+int arg_reg(char* str,char* prev_str){
+    
+    int j=0;
+    while(str[j]!=' ')
+        j++;
+    
+    int s_or_t;
+    int prev_store = store_reg(prev_str,&s_or_t);
+    //skip past the store reg
+    j+=3;
+    int new_reg = 0;
+    
+    while(j<strlen(str)){
+        j++;
+        if (str[j]=='$'){
+            new_reg = 1;
+            continue;
+        }
+        
+        if (new_reg){
+            new_reg=0;
+            
+            if((str[j]=='s' && !s_or_t)||(str[j]=='t' && s_or_t==1)){
+                if((str[j+1]-'0')==prev_store)
+                    return 1;
+            }j++;
+        }
+    }
+    return 0;
+}
+
+//check if nops should be added
+void nops_check(char input[5][128],int len,int * nops){
+    //set first value to 0
+    *nops = 0; nops++;
+    //check if nops are needed in succeeding instructions
+    for(int i=1;i<len;i++){
+        if(arg_reg(input[i],input[i-1]))
+            *nops = 2;
+        else if(i>1 && arg_reg(input[i],input[i-2]))
+            *nops = 1;
+        else
+            *nops = 0;
+        nops++;
+    }
+}
+
 //function to determine instruction type
 int parse_instr(char * str){
     char instr[4];
