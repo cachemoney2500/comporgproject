@@ -11,9 +11,8 @@
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-const char *intructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
+const char *instructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
 const char *stages[5] = {"IF","ID","EX","MEM","WB"};
-
 
 //function that returns the number of the store register in
 //an instruction & indicates whether its an s or t register
@@ -86,7 +85,7 @@ void nops_check(char input[5][128],int len,int * nops){
 int parse_instr(char * str){
     char instr[4];
     
-    j=0;
+    int j=0;
     while(str[j]!=' '){
         instr[j] = str[j];
     }
@@ -95,11 +94,88 @@ int parse_instr(char * str){
         if (strcmp(instr,instructions[i])==0)
             return i;
     }
+    return 100;
 }
 
-///////////////////////////////////////////////////////
-// These all need to be edited to fit the new format
-///////////////////////////////////////////////////////
+//perform the operation given in an instruction
+//call when register values need to be updated
+void operate(char * instr,int s[8],int t[10]){
+    //assign a number to the instruction type
+    int op = parse_instr(instr);
+    //determine which register to store result in
+    int s_or_t;
+    int store = store_reg(instr,&s_or_t);
+    int arg1; int arg2;
+    //find first argument
+    //skip past the instruction
+    int j=0;
+    while(instr[j]!=' ')
+        j++;
+    //skip past the store reg
+    j+=4;
+    if (instr[j]=='s')
+        arg1 = s[instr[j+1]-'0'];
+    else if (instr[j]=='t')
+        arg1 = t[instr[j+1]-'0'];
+    else
+        arg1 = 0;
+    //find second argument
+    //skip ahead to the next argument
+    while(instr[j]!=',')
+        j++;
+    j++;
+    if (op%2==1){//if the instruction is 'immediate', arg2 is an integer
+        //store the integer in an array
+        char arg[10];
+        int i=0;
+        while(j<strlen(instr)){
+            arg[i]=instr[j];
+            i++; j++;
+        }
+        //convert argument to an integer
+        arg2 = atoi(arg);
+    }else{
+        j++; //skip past the '$'
+        if (instr[j]=='s')
+            arg2 = s[instr[j+1]-'0'];
+        else if (instr[j]=='t')
+            arg2 = t[instr[j+1]-'0'];
+        else
+            arg2 = 0;
+    }
+    
+    //perform operation & store result in register
+    switch (op/2) {
+        case 0: //add operation
+            if (!s_or_t)
+                s[store] = arg1 + arg2;
+            else
+                t[store] = arg1 + arg2;
+            break;
+        case 1: //and operation
+            if (!s_or_t)
+                s[store] = arg1 & arg2;
+            else
+                t[store] = arg1 & arg2;
+            break;
+        case 2: //or operation
+            if (!s_or_t)
+                s[store] = arg1 | arg2;
+            else
+                t[store] = arg1 | arg2;
+            break;
+        case 3: //slt operation
+            if (!s_or_t)
+                s[store] = (arg1 < arg2);
+            else
+                t[store] = (arg1 < arg2);
+            break;
+            
+        default:
+            break;
+    }
+    
+}
 
 //print out a specified number of dots
 void print_dots(int dots){
@@ -128,7 +204,9 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
 
 void simulation(char input[5][128],int len){
     printf("START OF SIMULATION\n\n");
-    
+    //initialize all register values
+    int s[8] = {0,0,0,0,0,0,0,0};
+    int t[10] = {0,0,0,0,0,0,0,0,0,0};
     //check if nops are needed
     int nops[len];
     nops_check(input,len,nops);
@@ -257,7 +335,7 @@ void simulation(char input[5][128],int len){
     printf("END OF SIMULATION\n");
     
 }
-///////////////////////////////////////////////////////
+
 
 int main(int argc,char * argv[]){
     
