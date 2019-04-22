@@ -9,8 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+
 const char *intructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
 const char *stages[5] = {"IF","ID","EX","MEM","WB"};
+
 
 //function that returns the number of the store register in
 //an instruction & indicates whether its an s or t register
@@ -32,12 +35,13 @@ int store_reg(char * str,int * s_or_t){
 //function that checks one of the argument registers is used
 //as a store register in another instruction
 int arg_reg(char* str,char* prev_str){
-    
+    //skip past the instruction
     int j=0;
     while(str[j]!=' ')
         j++;
     
     int s_or_t;
+    //check which store register the previous instruction uses
     int prev_store = store_reg(prev_str,&s_or_t);
     //skip past the store reg
     j+=3;
@@ -93,6 +97,167 @@ int parse_instr(char * str){
     }
 }
 
+///////////////////////////////////////////////////////
+// These all need to be edited to fit the new format
+///////////////////////////////////////////////////////
+
+//print out a specified number of dots
+void print_dots(int dots){
+    for(int i=0;i<dots;i++){
+        printf("\t.");
+    }
+}
+
+//print out asterisks for nop statements
+void print_stars(int stars){
+    for(int i=0;i<stars;i++){
+        printf("\t*");
+    }
+}
+
+//print out the stages
+void print_stages(int stage,int repeat_stage,int repeat_cnt){
+    for(int i=0;i<stage;i++){
+        if (i+1==repeat_stage){
+            for(int j=0;j<repeat_cnt;j++)
+                printf("\t%s",stages[i]);
+        }else
+            printf("\t%s",stages[i]);
+    }
+}
+
+void simulation(char input[5][128],int len){
+    printf("START OF SIMULATION\n\n");
+    
+    //check if nops are needed
+    int nops[len];
+    nops_check(input,len,nops);
+    //keep track of which stage each instruction is on
+    int status[len];
+    status[0]=0;
+    for(int x=1;x<len;x++)
+        status[x]=-1;
+    
+    //print simulation steps
+    int cycle = 0;
+    int start_nops = 0;
+    while (1){
+        cycle++;
+        printf("CPU Cycles ===>\t1\t2\t3\t4\t5\t6\t7\t8\t9\n");
+        for(int i=0;i<len;i++){
+            //handle incrementing which stage each intruction is on based how many nops
+            switch (nops[i]) {
+                case 1:
+                    if (nops[i-1]==2){
+                        if (status[i]==1){
+                            if (status[i-2]==6)
+                                status[i]++;
+                        }else if (cycle>i-1) status[i]++;
+                    }else if (status[i]==2){
+                        start_nops = 1;
+                        if (status[i-2]==6)
+                            status[i]++;
+                    }else{
+                        if (cycle>i-1) status[i]++;
+                    }
+                    break;
+                case 2:
+                    if (status[i]==2){
+                        start_nops = 1;
+                        if (status[i-1]==6)
+                            status[i]++;
+                    }else{
+                        if (cycle>i-1) status[i]++;
+                    }break;
+                    
+                default:
+                    if (cycle>i-1) status[i]++;
+                    break;
+            }
+            
+            //print out nops when needed
+            if (start_nops){
+                if(nops[i]&& !nops[i-1]){
+                    for(int j=0;j<nops[i];j++){
+                        printf("nop\t");
+                        print_dots(i);
+                        print_stages(2,0,0);
+                        print_stars(MIN(3,cycle-2-i));
+                        print_dots(7-i-MIN(3,cycle-2-i));
+                        printf("\n");
+                    }
+                }
+            }
+            
+            
+            //print out each instruction w/ corresponding output stages
+            printf("%s",input[i]);
+            print_dots(i);
+            switch (nops[i]) {
+                case 1:
+                    if (nops[i-1]==2){
+                        if (status[i-2]<5){
+                            print_stages(MIN(5,status[i]),1,cycle-i);
+                            if (status[i]<1)
+                                print_dots(9-i);
+                            else if (status[i]==1 && cycle==i+1)
+                                print_dots(9-i-1);
+                            else
+                                print_dots(9-MIN(5,status[i])-cycle+1);
+                        }else{
+                            print_stages(MIN(5,status[i]),1,3);
+                            print_dots(9-MIN(5,status[i])-i-2);
+                        }
+                    }else{
+                        if (status[i-2]<5){
+                            print_stages(MIN(5,status[i]),2,cycle-i-1);
+                            if (status[i]<1)
+                                print_dots(9-i);
+                            else if (status[i]==1 && cycle==i+1)
+                                print_dots(9-i-1);
+                            else
+                                print_dots(9-MIN(5,status[i])-cycle+2);
+                        }else{
+                            print_stages(MIN(5,status[i]),2,2);
+                            print_dots(9-MIN(5,status[i])-i-1);
+                        }
+                    }break;
+                case 2:
+                    if (status[i-1]<5){
+                        print_stages(MIN(5,status[i]),2,cycle-i-1);
+                        if (status[i]<1)
+                            print_dots(9-i);
+                        else if (status[i]==1 && cycle==i+1)
+                            print_dots(9-i-1);
+                        else
+                            print_dots(9-MIN(5,status[i])-cycle+2);
+                    }else{
+                        print_stages(MIN(5,status[i]),2,3);
+                        print_dots(9-MIN(5,status[i])-i-2);
+                    }break;
+                    
+                    
+                default:
+                    print_stages(MIN(5,status[i]),0,0);
+                    if (status[i]<0)
+                        print_dots(9-i);
+                    else
+                        print_dots(9-MIN(5,status[i])-i);
+                    break;
+            }
+            
+            
+            printf("\n");
+        }
+        printf("\n");
+        if(status[len-1]==5)
+            break;
+    }
+    
+    printf("END OF SIMULATION\n");
+    
+}
+///////////////////////////////////////////////////////
 
 int main(int argc,char * argv[]){
     
