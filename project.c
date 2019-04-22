@@ -9,6 +9,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char *intructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
+
+//function to determine instruction type
+int parse_instr(char * str){
+    char instr[4];
+    
+    j=0;
+    while(str[j]!=' '){
+        instr[j] = str[j];
+    }
+    
+    for (int i=0;i<10;i++){
+        if (strcmp(instr,instructions[i])==0)
+            return i;
+    }
+}
+
 
 int main(int argc,char * argv[]){
     
