@@ -88,6 +88,7 @@ int parse_instr(char * str){
     int j=0;
     while(str[j]!=' '){
         instr[j] = str[j];
+        j++;
     }
     
     for (int i=0;i<10;i++){
@@ -105,6 +106,7 @@ void operate(char * instr,int s[8],int t[10]){
     //determine which register to store result in
     int s_or_t;
     int store = store_reg(instr,&s_or_t);
+    
     int arg1; int arg2;
     //find first argument
     //skip past the instruction
@@ -202,6 +204,8 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
     }
 }
 
+
+
 void simulation(char input[5][128],int len){
     printf("START OF SIMULATION\n\n");
     //initialize all register values
@@ -251,6 +255,11 @@ void simulation(char input[5][128],int len){
                 default:
                     if (cycle>i-1) status[i]++;
                     break;
+            }
+            
+            //update register values if status is at 'WB'
+            if (status[i]==5){
+                operate(input[i],s,t);
             }
             
             //print out nops when needed
@@ -356,6 +365,9 @@ int main(int argc,char * argv[]){
         i++;
     }
     fclose(file);
+    
+    //run simulation
+    simulation(str_in,i);
     
     return EXIT_SUCCESS;
 }
