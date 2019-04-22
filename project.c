@@ -10,6 +10,24 @@
 #include <string.h>
 
 const char *intructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
+const char *stages[5] = {"IF","ID","EX","MEM","WB"};
+
+//function that returns the number of the store register in
+//an instruction & indicates whether its an s or t register
+int store_reg(char * str,int * s_or_t){
+    int j=0;
+    while(str[j]!=' '){
+        j++;
+    }
+    
+    //save the store register
+    if(str[j+2]=='s'){
+        *s_or_t = 0;
+    }else if(str[j+2]=='t'){
+        *s_or_t = 1;
+    }
+    return str[j+3]-'0';
+}
 
 //function to determine instruction type
 int parse_instr(char * str){
@@ -38,7 +56,7 @@ int main(int argc,char * argv[]){
     //read input file
     FILE* file;
     char str_in[10][128];
-    file = fopen(argv[1],"r");
+    file = fopen(argv[2],"r");
     int i = 0;
     while(fgets(str_in[i],128,file)){
         //get rid of trailing newline
