@@ -226,19 +226,22 @@ void print_registers(int s[8],int t[10]){
 }
 
 
-void simulation(char input[5][128],int len,int forward){
-    printf("START OF SIMULATION\n\n");
+void simulation(char input[5][128],int len, bool forward){
+    printf("START OF SIMULATION ");
+    if(!forward){
+        printf("(no forwarding)\n");
+    }
+    else{
+        printf("(forwarding)\n");
+    }
+    printf("----------------------------------------------------------------------------------\n");
+
     //initialize all register values
     int s[8] = {0,0,0,0,0,0,0,0};
     int t[10] = {0,0,0,0,0,0,0,0,0,0};
     //check if nops are needed
     int nops[len];
-    if(forward){
-        for(int x=0;x<len;x++)
-            nops[x]=0;
-    }
-    else
-        nops_check(input,len,nops);
+    nops_check(input,len,nops);
     //keep track of which stage each instruction is on
     int status[len];
     status[0]=0;
@@ -251,7 +254,7 @@ void simulation(char input[5][128],int len,int forward){
     while (1){
         cycle++;
         printf("CPU Cycles ===>\t1\t2\t3\t4\t5\t6\t7\t8\t9\n");
-        for(int i=0;i<len;i++){
+        for(int i=0;i<MIN(cycle,len);i++){
             //handle incrementing which stage each intruction is on based how many nops
             switch (nops[i]) {
                 case 1:
@@ -363,6 +366,7 @@ void simulation(char input[5][128],int len,int forward){
         }
         printf("\n");
         print_registers(s,t);
+        printf("----------------------------------------------------------------------------------\n");
         if(status[len-1]==5)
             break;
     }
@@ -376,9 +380,9 @@ int main(int argc,char * argv[]){
     
     //read forwarding argument
     //store 1 for Forwarding, 0 for nonforwarding
-    int forward;
-    if (argv[1][0]=='F') forward = 1;
-    else if (argv[1][0]=='N') forward = 0;
+    bool forward;
+    if (argv[1][0]=='F') forward = true;
+    else if (argv[1][0]=='N') forward = false;
     
     //read input file
     FILE* file;
@@ -397,3 +401,4 @@ int main(int argc,char * argv[]){
     
     return EXIT_SUCCESS;
 }
+
