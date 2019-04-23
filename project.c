@@ -85,7 +85,7 @@ void nops_check(char input[5][128],int len,int * nops){
 
 //function to determine instruction type
 int parse_instr(char * str){
-    char instr[4];
+    char instr[5];
     
     int j=0;
     while(str[j]!=' '){
@@ -117,7 +117,7 @@ void operate(char * instr,int s[8],int t[10]){
     while(instr[j]!=' ')
         j++;
     //skip past the store reg
-    j+=4;
+    j+=6;
     if (instr[j]=='s')
         arg1 = s[instr[j+1]-'0'];
     else if (instr[j]=='t')
@@ -137,6 +137,7 @@ void operate(char * instr,int s[8],int t[10]){
             arg[i]=instr[j];
             i++; j++;
         }
+        arg[i]='\0';
         //convert argument to an integer
         arg2 = atoi(arg);
     }else{
@@ -148,6 +149,8 @@ void operate(char * instr,int s[8],int t[10]){
         else
             arg2 = 0;
     }
+    
+    //printf("arg1: %d\targ2: %d\n",arg1,arg2);
     
     //perform operation & store result in register
     switch (op/2) {
@@ -179,7 +182,6 @@ void operate(char * instr,int s[8],int t[10]){
         default:
             break;
     }
-    print_registers(s,t);
     
 }
 
@@ -355,7 +357,7 @@ void simulation(char input[5][128],int len){
             printf("\n");
         }
         printf("\n");
-        //print_registers(s,t);
+        print_registers(s,t);
         if(status[len-1]==5)
             break;
     }
