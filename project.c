@@ -254,9 +254,9 @@ void print_registers(int s[8],int t[10]){
 }
 
 
-void simulation(char input[5][128],int len, bool forward){
+void simulation(char input[5][128],int len, int forward){
     printf("START OF SIMULATION ");
-    if(!forward){
+    if(forward == 0){
         printf("(no forwarding)\n");
     }
     else{
@@ -408,9 +408,9 @@ int main(int argc,char * argv[]){
     
     //read forwarding argument
     //store 1 for Forwarding, 0 for nonforwarding
-    bool forward;
-    if (argv[1][0]=='F') forward = true;
-    else if (argv[1][0]=='N') forward = false;
+    int forward;
+    if (argv[1][0]=='F') forward = 1;
+    else if (argv[1][0]=='N') forward = 0;
     
     //read input file
     FILE* file;
