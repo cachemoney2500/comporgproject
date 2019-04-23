@@ -83,6 +83,34 @@ void nops_check(char input[5][128],int len,int * nops){
     }
 }
 
+int r_u_a_label(char * str){
+    int i=0;
+    while(str[i]!=' '){
+        if(str[i]==':')
+            return 1;
+        i++;
+    }
+    return 0;
+}
+
+//check if the input has any labels, if so store them & where they appear
+//return the number of labels
+int labels_check(char input[5][128],int len,char labels[5][128],int label_idx[5]){
+    int j;
+    int label_count = 0;
+    for(int i=0;i<len;i++){
+        if(r_u_a_label(input[i])){
+            j=0;
+            while(input[i][j]!=':'){
+                labels[label_count][j] = input[i][j];
+                j++;
+            }
+            label_idx[label_count]=i; //store the index of the label
+            label_count++;
+        }
+    }return label_count;
+}
+
 //function to determine instruction type
 int parse_instr(char * str){
     char instr[5];
