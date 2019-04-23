@@ -14,6 +14,8 @@
 const char *instructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
 const char *stages[5] = {"IF","ID","EX","MEM","WB"};
 
+void print_registers(int s[8],int t[10]);
+
 //function that returns the number of the store register in
 //an instruction & indicates whether its an s or t register
 int store_reg(char * str,int * s_or_t){
@@ -101,6 +103,7 @@ int parse_instr(char * str){
 //perform the operation given in an instruction
 //call when register values need to be updated
 void operate(char * instr,int s[8],int t[10]){
+    
     //assign a number to the instruction type
     int op = parse_instr(instr);
     //determine which register to store result in
@@ -176,6 +179,7 @@ void operate(char * instr,int s[8],int t[10]){
         default:
             break;
     }
+    print_registers(s,t);
     
 }
 
@@ -204,6 +208,20 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
     }
 }
 
+//print the status of all the registers
+void print_registers(int s[8],int t[10]){
+    int i;
+    for (i=0;i<8;i++){
+        printf("$s%d = %d\t",i,s[i]);
+        if(i%4==3)
+            printf("\n");
+    }
+    for (i=0;i<10;i++){
+        printf("$t%d = %d\t",i,t[i]);
+        if(i%4==3||i==9)
+            printf("\n");
+    }
+}
 
 
 void simulation(char input[5][128],int len){
@@ -337,6 +355,7 @@ void simulation(char input[5][128],int len){
             printf("\n");
         }
         printf("\n");
+        //print_registers(s,t);
         if(status[len-1]==5)
             break;
     }
