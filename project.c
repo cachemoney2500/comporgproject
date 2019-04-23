@@ -14,23 +14,25 @@
 const char *instructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
 const char *stages[5] = {"IF","ID","EX","MEM","WB"};
 
-void print_registers(int s[8],int t[10]);
+void print_registers(int s[8],int t[10]){
+    int i;
+    for (i=0;i<8;i++){   
+        if(i%4 != 0){
+            printf("\t\t");
+        }
+        printf("$s%d = %d\t",i,s[i]);
+        if(i%4==3)
+            printf("\n");
+    }
 
-//function that returns the number of the store register in
-//an instruction & indicates whether its an s or t register
-int store_reg(char * str,int * s_or_t){
-    int j=0;
-    while(str[j]!=' '){
-        j++;
+    for (i=0;i<10;i++){
+        if(i%4 != 0){
+            printf("\t\t");
+        }
+        printf("$t%d = %d\t",i,t[i]);
+        if(i%4==3||i==9)
+            printf("\n");
     }
-    
-    //save the store register
-    if(str[j+2]=='s'){
-        *s_or_t = 0;
-    }else if(str[j+2]=='t'){
-        *s_or_t = 1;
-    }
-    return str[j+3]-'0';
 }
 
 //function that checks one of the argument registers is used
