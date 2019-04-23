@@ -226,14 +226,19 @@ void print_registers(int s[8],int t[10]){
 }
 
 
-void simulation(char input[5][128],int len){
+void simulation(char input[5][128],int len,int forward){
     printf("START OF SIMULATION\n\n");
     //initialize all register values
     int s[8] = {0,0,0,0,0,0,0,0};
     int t[10] = {0,0,0,0,0,0,0,0,0,0};
     //check if nops are needed
     int nops[len];
-    nops_check(input,len,nops);
+    if(forward){
+        for(int x=0;x<len;x++)
+            nops[x]=0;
+    }
+    else
+        nops_check(input,len,nops);
     //keep track of which stage each instruction is on
     int status[len];
     status[0]=0;
@@ -388,7 +393,7 @@ int main(int argc,char * argv[]){
     fclose(file);
     
     //run simulation
-    simulation(str_in,i);
+    simulation(str_in,i,forward);
     
     return EXIT_SUCCESS;
 }
