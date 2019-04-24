@@ -296,6 +296,7 @@ void print_registers(int s[8],int t[10]){
 
 
 void simulation(char input[5][128],int len, int forward){
+    int num_nop=0;
     printf("START OF SIMULATION ");
     if(!forward){
         printf("(no forwarding)\n");
@@ -445,8 +446,16 @@ void simulation(char input[5][128],int len, int forward){
         printf("\n");
         print_registers(s,t);
         printf("----------------------------------------------------------------------------------\n");
-        if(status[len-1]==5)
-            break;
+        if(num_nop == 0){
+            if(status[len-1]==4){
+                break;
+            }
+        }
+        else{
+            if(status[len-1]==5){
+                break;
+            }
+        }
     }
     
     printf("END OF SIMULATION\n");
