@@ -281,7 +281,7 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
 void print_registers(int s[8],int t[10]){
     int i;
     for (i=0;i<8;i++){
-        if(i%4 == 3){
+        if(i%4 == 3 || i==9){
         printf("$s%d = %d",i,s[i]);
         }
         else{
