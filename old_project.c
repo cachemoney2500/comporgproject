@@ -1,6 +1,6 @@
 //
 //  project.c
-//  
+//
 //
 //  Created by Courtney Moran on 4/21/19.
 //
@@ -21,7 +21,7 @@ int store_reg(char * str,int * s_or_t){
     while(str[j]!=' '){
         j++;
     }
-    
+
     //save the store register
     if(str[j+2]=='s'){
         *s_or_t = 0;
@@ -38,24 +38,24 @@ int arg_reg(char* str,char* prev_str){
     int j=0;
     while(str[j]!=' ')
         j++;
-    
+
     int s_or_t;
     //check which store register the previous instruction uses
     int prev_store = store_reg(prev_str,&s_or_t);
     //skip past the store reg
     j+=3;
     int new_reg = 0;
-    
+
     while(j<strlen(str)){
         j++;
         if (str[j]=='$'){
             new_reg = 1;
             continue;
         }
-        
+
         if (new_reg){
             new_reg=0;
-            
+
             if((str[j]=='s' && !s_or_t)||(str[j]=='t' && s_or_t==1)){
                 if((str[j+1]-'0')==prev_store)
                     return 1;
@@ -84,13 +84,13 @@ void nops_check(char input[5][128],int len,int * nops){
 //function to determine instruction type
 int parse_instr(char * str){
     char instr[4];
-    
+
     int j=0;
     while(str[j]!=' '){
         instr[j] = str[j];
         j++;
     }
-    
+
     for (int i=0;i<10;i++){
         if (strcmp(instr,instructions[i])==0)
             return i;
@@ -106,7 +106,7 @@ void operate(char * instr,int s[8],int t[10]){
     //determine which register to store result in
     int s_or_t;
     int store = store_reg(instr,&s_or_t);
-    
+
     int arg1; int arg2;
     //find first argument
     //skip past the instruction
@@ -145,7 +145,7 @@ void operate(char * instr,int s[8],int t[10]){
         else
             arg2 = 0;
     }
-    
+
     //perform operation & store result in register
     switch (op/2) {
         case 0: //add operation
@@ -172,11 +172,37 @@ void operate(char * instr,int s[8],int t[10]){
             else
                 t[store] = (arg1 < arg2);
             break;
-            
+
         default:
             break;
     }
-    
+
+}
+
+//print the status of all the registers
+void print_registers(int s[8],int t[10]){
+    int i;
+    for (i=0;i<8;i++){
+        if(i%4 == 3){
+        printf("$s%d = %d",i,s[i]);
+        }
+        else{
+            printf("$s%d = %-14d",i,s[i]);
+        }
+        if(i%4==3)
+            printf("\n");
+    }
+
+    for (i=0;i<10;i++){
+        if(i%4 == 3){
+            printf("$t%d = %d",i,t[i]);
+        }
+        else{
+            printf("$t%d = %-14d",i,t[i]);
+        }
+        if(i%4==3||i==9)
+            printf("\n");
+    }
 }
 
 //print out a specified number of dots
@@ -222,8 +248,16 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
 
 
 
-void simulation(char input[5][128],int len){
-    printf("START OF SIMULATION\n\n");
+void simulation(char input[5][128],int len, int forward){
+    printf("START OF SIMULATION ");
+    if(!forward){
+        printf("(no forwarding)\n");
+    }
+    else{
+        printf("(forwarding)\n");
+    }
+    printf("----------------------------------------------------------------------------------\n");
+
     //initialize all register values
     int s[8] = {0,0,0,0,0,0,0,0};
     int t[10] = {0,0,0,0,0,0,0,0,0,0};
@@ -235,13 +269,12 @@ void simulation(char input[5][128],int len){
     status[0]=0;
     for(int x=1;x<len;x++)
         status[x]=-1;
-    
+
     //print simulation steps
     int cycle = 0;
     int start_nops = 0;
     while (1){
         cycle++;
-       printf("----------------------------------------------------------------------------------\n");
         printf("CPU Cycles ===>     1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16\n");
         for(int i=0;i<len;i++){
             //handle incrementing which stage each intruction is on based how many nops
@@ -268,17 +301,17 @@ void simulation(char input[5][128],int len){
                     }else{
                         if (cycle>i-1) status[i]++;
                     }break;
-                    
+
                 default:
                     if (cycle>i-1) status[i]++;
                     break;
             }
-            
+
             //update register values if status is at 'WB'
             if (status[i]==5){
                 operate(input[i],s,t);
             }
-            
+
             //print out nops when needed
             if (start_nops){
                 if(nops[i]&& !nops[i-1]){
@@ -292,85 +325,88 @@ void simulation(char input[5][128],int len){
                     }
                 }
             }
-            
-            
+
+
             //print out each instruction w/ corresponding output stages
-            printf("%s",input[i]);
-            print_dots(i,0);
-            switch (nops[i]) {
-                case 1:
-                    if (nops[i-1]==2){
-                        if (status[i-2]<5){
-                            print_stages(MIN(5,status[i]),1,cycle-i);
-                            if (status[i]<1)
-                                print_dots(16-i,1);
-                            else if (status[i]==1 && cycle==i+1)
-                                print_dots(16-i-1,1);
-                            else
-                                print_dots(16-MIN(5,status[i])-cycle+1,1);
-                        }else{
-                            print_stages(MIN(5,status[i]),1,3);
-                            print_dots(16-MIN(5,status[i])-i-2,1);
-                        }
-                    }else{
-                        if (status[i-2]<5){
-                            print_stages(MIN(5,status[i]),2,cycle-i-1);
-                            if (status[i]<1)
-                                print_dots(16-i,1);
-                            else if (status[i]==1 && cycle==i+1)
-                                print_dots(16-i-1,1);
-                            else
-                                print_dots(16-MIN(5,status[i])-cycle+2,1);
-                        }else{
-                            print_stages(MIN(5,status[i]),2,2);
-                            print_dots(16-MIN(5,status[i])-i-1,1);
-                        }
-                    }break;
-                case 2:
-                    if (status[i-1]<5){
-                        print_stages(MIN(5,status[i]),2,cycle-i-1);
-                        if (status[i]<1)
-                            print_dots(16-i,1);
-                        else if (status[i]==1 && cycle==i+1)
-                            print_dots(16-i-1,1);
-                        else
-                            print_dots(16-MIN(5,status[i])-cycle+2,1);
-                    }else{
-                        print_stages(MIN(5,status[i]),2,3);
-                        print_dots(16-MIN(5,status[i])-i-2,1);
-                    }break;
+          printf("%s",input[i]);
+          int spaces = 20-strlen(input[i]);
+          for (int j=0;j<spaces;j++) {
+            printf(" ");
+          }
+          print_dots(i,0);
+          switch (nops[i]) {
+              case 1:
+                  if (nops[i-1]==2){
+                      if (status[i-2]<5){
+                          print_stages(MIN(5,status[i]),1,cycle-i);
+                          if (status[i]<1)
+                              print_dots(16-i,1);
+                          else if (status[i]==1 && cycle==i+1)
+                              print_dots(16-i-1,1);
+                          else
+                              print_dots(16-MIN(5,status[i])-cycle+1,1);
+                      }else{
+                          print_stages(MIN(5,status[i]),1,3);
+                          print_dots(16-MIN(5,status[i])-i-2,1);
+                      }
+                  }else{
+                      if (status[i-2]<5){
+                          print_stages(MIN(5,status[i]),2,cycle-i-1);
+                          if (status[i]<1)
+                              print_dots(16-i,1);
+                          else if (status[i]==1 && cycle==i+1)
+                              print_dots(16-i-1,1);
+                          else
+                              print_dots(16-MIN(5,status[i])-cycle+2,1);
+                      }else{
+                          print_stages(MIN(5,status[i]),2,2);
+                          print_dots(16-MIN(5,status[i])-i-1,1);
+                      }
+                  }break;
+              case 2:
+                  if (status[i-1]<5){
+                      print_stages(MIN(5,status[i]),2,cycle-i-1);
+                      if (status[i]<1)
+                          print_dots(16-i,1);
+                      else if (status[i]==1 && cycle==i+1)
+                          print_dots(16-i-1,1);
+                      else
+                          print_dots(16-MIN(5,status[i])-cycle+2,1);
+                  }else{
+                      print_stages(MIN(5,status[i]),2,3);
+                      print_dots(16-MIN(5,status[i])-i-2,1);
+                  }break;
 
 
-                default:
-                    print_stages(MIN(5,status[i]),0,0);
-                    if (status[i]<0)
-                        print_dots(16-i,1);
-                    else
-                        print_dots(16-MIN(5,status[i])-i,1);
-                    break;
-            }
-            
-            
-            printf("\n");
-        }
-        printf("\n");
-        if(status[len-1]==5)
-            break;
-    }
-    
-    printf("END OF SIMULATION\n");
-    
+              default:
+                  print_stages(MIN(5,status[i]),0,0);
+                  if (status[i]<0)
+                      print_dots(16-i,1);
+                  else
+                      print_dots(16-MIN(5,status[i])-i,1);
+                  break;
+          }
+
+          printf("\n");
+      }
+      printf("\n");
+      print_registers(s,t);
+      printf("----------------------------------------------------------------------------------\n");
+      if(status[len-1]==5)
+          break;
+  }
+
 }
 
 
 int main(int argc,char * argv[]){
-    
+
     //read forwarding argument
     //store 1 for Forwarding, 0 for nonforwarding
     int forward;
     if (argv[1][0]=='F') forward = 1;
     else if (argv[1][0]=='N') forward = 0;
-    
+
     //read input file
     FILE* file;
     char str_in[10][128];
@@ -382,9 +418,9 @@ int main(int argc,char * argv[]){
         i++;
     }
     fclose(file);
-    
+
     //run simulation
-    simulation(str_in,i);
-    
+    simulation(str_in,i,forward);
+
     return EXIT_SUCCESS;
 }
