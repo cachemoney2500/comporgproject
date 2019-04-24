@@ -237,18 +237,21 @@ void print_stars(int stars){
 void print_stages(int stage,int repeat_stage,int repeat_cnt){
     for(int i=0;i<stage;i++){
         if (i+1==repeat_stage){
-            for(int j=0;j<repeat_cnt;j++)
+            for(int j=0;j<repeat_cnt;j++) {
                 printf("%s",stages[i]);
                 int spaces = 4 - strlen(stages[i]);
                 for(int k=0;k<spaces;k++) {
                   printf(" ");
                 }
-        }else
+            }
+        }
+        else {
             printf("%s",stages[i]);
             int spaces = 4 - strlen(stages[i]);
             for(int k=0;k<spaces;k++) {
               printf(" ");
             }
+        }
     }
 }
 
