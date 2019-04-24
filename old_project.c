@@ -241,7 +241,8 @@ void simulation(char input[5][128],int len){
     int start_nops = 0;
     while (1){
         cycle++;
-        printf("CPU Cycles ===>\t1\t2\t3\t4\t5\t6\t7\t8\t9\n");
+       printf("----------------------------------------------------------------------------------\n");
+        printf("CPU Cycles ===>     1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16\n");
         for(int i=0;i<len;i++){
             //handle incrementing which stage each intruction is on based how many nops
             switch (nops[i]) {
