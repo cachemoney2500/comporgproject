@@ -218,11 +218,20 @@ void operate(char * instr,int s[8],int t[10]){
 //print out a specified number of dots
 void print_dots(int dots,int before_or_after){
     for(int i=0;i<dots;i++){
+        //printf("%d %d",dots,i);
+        //printf("\n" );
+        //printf("%d",i);
+        //printf("\n");
         if (before_or_after == 1 && i == dots-1) {
           printf(".");
           return;
+        } 
+
+        else {
+
+            printf(".   ");
+
         }
-        printf(".   ");
     }
 }
 
@@ -435,8 +444,9 @@ void simulation(char input[5][128],int len, int forward){
                     }
                     if (status[i]<0)
                         print_dots(16-i,1);
-                    else
-                        print_dots(16-MIN(5,status[i])-i,1);
+                    else{
+                        print_dots(16-MIN(5,status[i]+(1*MIN(1,i)))-i,1);
+                    }
                     break;
             }
             
@@ -473,7 +483,7 @@ int main(int argc,char * argv[]){
     
     //read input file
     FILE* file;
-    char str_in[10][128];
+    char str_in[5][128];
     file = fopen(argv[2],"r");
     int i = 0;
     while(fgets(str_in[i],128,file)){
