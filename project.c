@@ -168,7 +168,9 @@ void operate(char * instr,int s[8],int t[10]){
         arg[i]='\0';
         //convert argument to an integer
         arg2 = atoi(arg);
-    }else{
+    }
+
+    else{
         j++; //skip past the '$'
         if (instr[j]=='s')
             arg2 = s[instr[j+1]-'0'];
@@ -241,12 +243,19 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
 //print the status of all the registers
 void print_registers(int s[8],int t[10]){
     int i;
-    for (i=0;i<8;i++){
+    for (i=0;i<8;i++){   
+        if(i%4 != 0){
+            printf("\t\t");
+        }
         printf("$s%d = %d\t",i,s[i]);
         if(i%4==3)
             printf("\n");
     }
+
     for (i=0;i<10;i++){
+        if(i%4 != 0){
+            printf("\t\t");
+        }
         printf("$t%d = %d\t",i,t[i]);
         if(i%4==3||i==9)
             printf("\n");
