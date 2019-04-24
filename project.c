@@ -252,13 +252,23 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
 void print_registers(int s[8],int t[10]){
     int i;
     for (i=0;i<8;i++){
-        printf("$s%d = %-14d",i,s[i]);
+        if(i%4 == 3){
+        printf("$s%d = %d",i,s[i]);
+        }
+        else{
+            printf("$s%d = %-14d",i,s[i]);
+        }
         if(i%4==3)
             printf("\n");
     }
 
     for (i=0;i<10;i++){
-        printf("$s%d = %-14d",i,t[i]);
+        if(i%4 == 3){
+            printf("$t%d = %d",i,t[i]);
+        }
+        else{
+            printf("$t%d = %-14d",i,t[i]);
+        }
         if(i%4==3||i==9)
             printf("\n");
     }
