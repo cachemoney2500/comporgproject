@@ -367,7 +367,7 @@ void simulation(char input[5][128],int len, int forward){
                         print_dots(i,0);
                         print_stages(2,0,0);
                         print_stars(MIN(3,cycle-2-i));
-                        print_dots(7-i-MIN(3,cycle-2-i),1);
+                        print_dots(14-i-MIN(3,cycle-2-i),1);
                         printf("\n");
                     }
                 }
