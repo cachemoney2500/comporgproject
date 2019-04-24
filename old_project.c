@@ -316,7 +316,7 @@ void simulation(char input[5][128],int len, int forward){
             if (start_nops){
                 if(nops[i]&& !nops[i-1]){
                     for(int j=0;j<nops[i];j++){
-                        printf("nop\t");
+                        printf("nop                 ");
                         print_dots(i,0);
                         print_stages(2,0,0);
                         print_stars(MIN(3,cycle-2-i));
