@@ -233,6 +233,19 @@ void print_stars(int stars){
     }
 }
 
+/*
+//print out the stages
+void print_stages(int stage,int repeat_stage,int repeat_cnt){
+    for(int i=0;i<stage;i++){
+        if (i+1==repeat_stage){
+            for(int j=0;j<repeat_cnt;j++)
+                printf("\t%s",stages[i]);
+        }else
+            printf("\t%s",stages[i]);
+    }
+}
+*/
+
 //print out the stages
 void print_stages(int stage,int repeat_stage,int repeat_cnt){
     for(int i=0;i<stage;i++){
@@ -270,7 +283,7 @@ void print_registers(int s[8],int t[10]){
     }
 
     for (i=0;i<10;i++){
-        if(i%4 == 3 || i==9){
+        if(i%4 == 3){
             printf("$t%d = %d",i,t[i]);
         }
         else{
