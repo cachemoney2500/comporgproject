@@ -14,25 +14,23 @@
 const char *instructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
 const char *stages[5] = {"IF","ID","EX","MEM","WB"};
 
-void print_registers(int s[8],int t[10]){
-    int i;
-    for (i=0;i<8;i++){   
-        if(i%4 != 0){
-            printf("\t\t");
-        }
-        printf("$s%d = %d\t",i,s[i]);
-        if(i%4==3)
-            printf("\n");
-    }
+void print_registers(int s[8],int t[10]);
 
-    for (i=0;i<10;i++){
-        if(i%4 != 0){
-            printf("\t\t");
-        }
-        printf("$t%d = %d\t",i,t[i]);
-        if(i%4==3||i==9)
-            printf("\n");
+//function that returns the number of the store register in
+//an instruction & indicates whether its an s or t register
+int store_reg(char * str,int * s_or_t){
+    int j=0;
+    while(str[j]!=' '){
+        j++;
     }
+    
+    //save the store register
+    if(str[j+2]=='s'){
+        *s_or_t = 0;
+    }else if(str[j+2]=='t'){
+        *s_or_t = 1;
+    }
+    return str[j+3]-'0';
 }
 
 //function that checks one of the argument registers is used
@@ -256,9 +254,9 @@ void print_registers(int s[8],int t[10]){
 }
 
 
-void simulation(char input[5][128],int len, int forward){
+void simulation(char input[5][128],int len, bool forward){
     printf("START OF SIMULATION ");
-    if(forward == 0){
+    if(!forward){
         printf("(no forwarding)\n");
     }
     else{
@@ -283,59 +281,111 @@ void simulation(char input[5][128],int len, int forward){
     int start_nops = 0;
     while (1){
         cycle++;
-        printf("CPU Cycles ===>     1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16\n");
+        printf("CPU Cycles ===>\t1\t2\t3\t4\t5\t6\t7\t8\t9\n");
         for(int i=0;i<MIN(cycle,len);i++){
             //handle incrementing which stage each intruction is on based how many nops
+            switch (nops[i]) {
+                case 1:
+                    if (nops[i-1]==2){
+                        if (status[i]==1){
+                            if (status[i-2]==6)
+                                status[i]++;
+                        }else if (cycle>i-1) status[i]++;
+                    }else if (status[i]==2){
+                        start_nops = 1;
+                        if (status[i-2]==6)
+                            status[i]++;
+                    }else{
+                        if (cycle>i-1) status[i]++;
+                    }
+                    break;
+                case 2:
+                    if (status[i]==2){
+                        start_nops = 1;
+                        if (status[i-1]==6)
+                            status[i]++;
+                    }else{
+                        if (cycle>i-1) status[i]++;
+                    }break;
+                    
+                default:
+                    if (cycle>i-1) status[i]++;
+                    break;
+            }
+            
+            //update register values if status is at 'WB'
+            if (status[i]==5){
+                operate(input[i],s,t);
+            }
+            
+            //print out nops when needed
+            if (start_nops){
+                if(nops[i]&& !nops[i-1]){
+                    for(int j=0;j<nops[i];j++){
+                        printf("nop\t");
+                        print_dots(i);
+                        print_stages(2,0,0);
+                        print_stars(MIN(3,cycle-2-i));
+                        print_dots(7-i-MIN(3,cycle-2-i));
+                        printf("\n");
+                    }
+                }
+            }
+            
+            
+            //print out each instruction w/ corresponding output stages
+            printf("%s",input[i]);
+            print_dots(i);
             switch (nops[i]) {
                 case 1:
                     if (nops[i-1]==2){
                         if (status[i-2]<5){
                             print_stages(MIN(5,status[i]),1,cycle-i);
                             if (status[i]<1)
-                                print_dots(16-i);
+                                print_dots(9-i);
                             else if (status[i]==1 && cycle==i+1)
-                                print_dots(16-i-1);
+                                print_dots(9-i-1);
                             else
-                                print_dots(16-MIN(5,status[i])-cycle+1);
+                                print_dots(9-MIN(5,status[i])-cycle+1);
                         }else{
                             print_stages(MIN(5,status[i]),1,3);
-                            print_dots(16-MIN(5,status[i])-i-2);
+                            print_dots(9-MIN(5,status[i])-i-2);
                         }
                     }else{
                         if (status[i-2]<5){
                             print_stages(MIN(5,status[i]),2,cycle-i-1);
                             if (status[i]<1)
-                                print_dots(16-i);
+                                print_dots(9-i);
                             else if (status[i]==1 && cycle==i+1)
-                                print_dots(16-i-1);
+                                print_dots(9-i-1);
                             else
-                                print_dots(16-MIN(5,status[i])-cycle+2);
+                                print_dots(9-MIN(5,status[i])-cycle+2);
                         }else{
                             print_stages(MIN(5,status[i]),2,2);
-                            print_dots(16-MIN(5,status[i])-i-1);
+                            print_dots(9-MIN(5,status[i])-i-1);
                         }
                     }break;
                 case 2:
                     if (status[i-1]<5){
                         print_stages(MIN(5,status[i]),2,cycle-i-1);
                         if (status[i]<1)
-                            print_dots(16-i);
+                            print_dots(9-i);
                         else if (status[i]==1 && cycle==i+1)
-                            print_dots(16-i-1);
+                            print_dots(9-i-1);
                         else
-                            print_dots(16-MIN(5,status[i])-cycle+2);
+                            print_dots(9-MIN(5,status[i])-cycle+2);
                     }else{
                         print_stages(MIN(5,status[i]),2,3);
-                        print_dots(16-MIN(5,status[i])-i-2);
+                        print_dots(9-MIN(5,status[i])-i-2);
                     }break;
                     
                     
                 default:
                     print_stages(MIN(5,status[i]),0,0);
                     if (status[i]<0)
-                        print_dots(16-i);
+                        print_dots(9-i);
                     else
-                        print_dots(16-MIN(5,status[i])-i);
+                        print_dots(9-MIN(5,status[i])-i);
                     break;
             }
             
@@ -358,9 +408,9 @@ int main(int argc,char * argv[]){
     
     //read forwarding argument
     //store 1 for Forwarding, 0 for nonforwarding
-    int forward;
-    if (argv[1][0]=='F') forward = 1;
-    else if (argv[1][0]=='N') forward = 0;
+    bool forward;
+    if (argv[1][0]=='F') forward = true;
+    else if (argv[1][0]=='N') forward = false;
     
     //read input file
     FILE* file;
@@ -379,4 +429,3 @@ int main(int argc,char * argv[]){
     
     return EXIT_SUCCESS;
 }
-
