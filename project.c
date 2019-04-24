@@ -216,8 +216,12 @@ void operate(char * instr,int s[8],int t[10]){
 }
 
 //print out a specified number of dots
-void print_dots(int dots){
+void print_dots(int dots,int before_or_after){
     for(int i=0;i<dots;i++){
+        if (before_or_after == 1 && i == dots-1) {
+          printf(".");
+          return;
+        }
         printf(".   ");
     }
 }
@@ -339,78 +343,78 @@ void simulation(char input[5][128],int len, int forward){
                 operate(input[i],s,t);
             }
             
-            //print out nops when needed
+              //print out nops when needed
             if (start_nops){
                 if(nops[i]&& !nops[i-1]){
                     for(int j=0;j<nops[i];j++){
                         printf("nop                 ");
-                        print_dots(i);
+                        print_dots(i,0);
                         print_stages(2,0,0);
                         print_stars(MIN(3,cycle-2-i));
-                        print_dots(7-i-MIN(3,cycle-2-i));
+                        print_dots(7-i-MIN(3,cycle-2-i),1);
                         printf("\n");
                     }
                 }
             }
-            
-            
+
+
               //print out each instruction w/ corresponding output stages
             printf("%s",input[i]);
             int spaces = 20-strlen(input[i]);
-            for (int i=0;i<spaces;i++) {
+            for (int j=0;j<spaces;j++) {
               printf(" ");
             }
-            print_dots(i);
+            print_dots(i,0);
             switch (nops[i]) {
                 case 1:
                     if (nops[i-1]==2){
                         if (status[i-2]<5){
                             print_stages(MIN(5,status[i]),1,cycle-i);
                             if (status[i]<1)
-                                print_dots(16-i);
+                                print_dots(16-i,1);
                             else if (status[i]==1 && cycle==i+1)
-                                print_dots(16-i-1);
+                                print_dots(16-i-1,1);
                             else
-                                print_dots(16-MIN(5,status[i])-cycle+1);
+                                print_dots(16-MIN(5,status[i])-cycle+1,1);
                         }else{
                             print_stages(MIN(5,status[i]),1,3);
-                            print_dots(16-MIN(5,status[i])-i-2);
+                            print_dots(16-MIN(5,status[i])-i-2,1);
                         }
                     }else{
                         if (status[i-2]<5){
                             print_stages(MIN(5,status[i]),2,cycle-i-1);
                             if (status[i]<1)
-                                print_dots(16-i);
+                                print_dots(16-i,1);
                             else if (status[i]==1 && cycle==i+1)
-                                print_dots(16-i-1);
+                                print_dots(16-i-1,1);
                             else
-                                print_dots(16-MIN(5,status[i])-cycle+2);
+                                print_dots(16-MIN(5,status[i])-cycle+2,1);
                         }else{
                             print_stages(MIN(5,status[i]),2,2);
-                            print_dots(16-MIN(5,status[i])-i-1);
+                            print_dots(16-MIN(5,status[i])-i-1,1);
                         }
                     }break;
                 case 2:
                     if (status[i-1]<5){
                         print_stages(MIN(5,status[i]),2,cycle-i-1);
                         if (status[i]<1)
-                            print_dots(16-i);
+                            print_dots(16-i,1);
                         else if (status[i]==1 && cycle==i+1)
-                            print_dots(16-i-1);
+                            print_dots(16-i-1,1);
                         else
-                            print_dots(16-MIN(5,status[i])-cycle+2);
+                            print_dots(16-MIN(5,status[i])-cycle+2,1);
                     }else{
                         print_stages(MIN(5,status[i]),2,3);
-                        print_dots(16-MIN(5,status[i])-i-2);
+                        print_dots(16-MIN(5,status[i])-i-2,1);
                     }break;
 
 
                 default:
                     print_stages(MIN(5,status[i]),0,0);
                     if (status[i]<0)
-                        print_dots(16-i);
+                        print_dots(16-i,1);
                     else
-                        print_dots(16-MIN(5,status[i])-i);
+                        print_dots(16-MIN(5,status[i])-i,1);
                     break;
             }
             
