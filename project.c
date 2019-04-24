@@ -270,7 +270,7 @@ void print_registers(int s[8],int t[10]){
     }
 
     for (i=0;i<10;i++){
-        if(i%4 == 3){
+        if(i%4 == 3 || i==9){
             printf("$t%d = %d",i,t[i]);
         }
         else{
