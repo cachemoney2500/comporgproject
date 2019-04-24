@@ -426,7 +426,12 @@ void simulation(char input[5][128],int len, int forward){
 
 
                 default:
-                    print_stages(MIN(5,status[i]),0,0);
+                    if (i == 0){
+                        print_stages(MIN(5,status[i]),0,0);
+                    }
+                    else{
+                        print_stages(MIN(5,status[i]+1),0,0);      
+                    }
                     if (status[i]<0)
                         print_dots(16-i,1);
                     else
