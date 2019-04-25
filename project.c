@@ -120,6 +120,8 @@ int parse_instr(char * str){
         instr[j] = str[j];
         j++;
     }
+    instr[j] = '\0';
+
     
     for (int i=0;i<10;i++){
         if (strcmp(instr,instructions[i])==0)
