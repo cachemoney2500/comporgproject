@@ -10,6 +10,7 @@
 #include <string.h>
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 const char *instructions[10] = {"add", "addi", "and", "andi", "or", "ori", "slt", "slti", "beq", "bne"};
 const char *stages[5] = {"IF","ID","EX","MEM","WB"};
@@ -68,7 +69,7 @@ int arg_reg(char* str,char* prev_str){
 }
 
 //check if nops should be added
-void nops_check(char input[5][128],int len,int * nops){
+void nops_check(char input[16][128],int len,int * nops){
     //set first value to 0
     *nops = 0; nops++;
     //check if nops are needed in succeeding instructions
@@ -83,6 +84,7 @@ void nops_check(char input[5][128],int len,int * nops){
     }
 }
 
+//check if a string is a label
 int r_u_a_label(char * str){
     int i=0;
     while(str[i]!=' '){
@@ -93,9 +95,18 @@ int r_u_a_label(char * str){
     return 0;
 }
 
+//check which label a string is
+int which_label(char str[128],char labels[5][128],int label_count){
+    for(int i=0;i<label_count;i++){
+        if(strcmp(str,labels[i])==0){
+            return i;
+        }
+    }return 100;
+}
+
 //check if the input has any labels, if so store them & where they appear
 //return the number of labels
-int labels_check(char input[5][128],int len,char labels[5][128],int label_idx[5]){
+int labels_check(char input[16][128],int len,char labels[5][128],int label_idx[5]){
     int j;
     int label_count = 0;
     for(int i=0;i<len;i++){
@@ -105,6 +116,7 @@ int labels_check(char input[5][128],int len,char labels[5][128],int label_idx[5]
                 labels[label_count][j] = input[i][j];
                 j++;
             }
+            labels[label_count][j] = '\0';
             label_idx[label_count]=i; //store the index of the label
             label_count++;
         }
@@ -132,7 +144,8 @@ int parse_instr(char * str){
 
 //perform the operation given in an instruction
 //call when register values need to be updated
-void operate(char * instr,int s[8],int t[10]){
+//return (1+label index) if a branch occurs, otherwise 0
+int operate(char * instr,int s[8],int t[10],char labels[5][128],int label_count){
     
     //assign a number to the instruction type
     int op = parse_instr(instr);
@@ -141,27 +154,47 @@ void operate(char * instr,int s[8],int t[10]){
     int store = store_reg(instr,&s_or_t);
     
     int arg1; int arg2;
+    char label[128];
+    int branch=0;
     //find first argument
     //skip past the instruction
     int j=0;
     while(instr[j]!=' ')
         j++;
+    
+    if(op>7){
+        if(!s_or_t){
+            arg1 = s[store];
+        }else
+            arg1 = t[store];
+    }
     //skip past the store reg
     j+=6;
-    if (instr[j]=='s')
-        arg1 = s[instr[j+1]-'0'];
-    else if (instr[j]=='t')
-        arg1 = t[instr[j+1]-'0'];
-    else
-        arg1 = 0;
+    if (instr[j]=='s'){
+        if(op<8)
+            arg1 = s[instr[j+1]-'0'];
+        else
+            arg2 = s[instr[j+1]-'0'];
+    }else if (instr[j]=='t'){
+        if(op<8)
+            arg1 = t[instr[j+1]-'0'];
+        else
+            arg2 = t[instr[j+1]-'0'];
+    }else{
+        if(op<8)
+            arg1 = 0;
+        else
+            arg2 = 0;
+    }
     //find second argument
     //skip ahead to the next argument
     while(instr[j]!=',')
         j++;
     j++;
-    if (op%2==1){//if the instruction is 'immediate', arg2 is an integer
+    if (op%2==1 || op>7){//if the instruction is 'immediate', arg2 is an integer
+        //if its a branch instr, we want to store the label
         //store the integer in an array
-        char arg[10];
+        char arg[128];
         int i=0;
         while(j<strlen(instr)){
             arg[i]=instr[j];
@@ -169,10 +202,11 @@ void operate(char * instr,int s[8],int t[10]){
         }
         arg[i]='\0';
         //convert argument to an integer
-        arg2 = atoi(arg);
-    }
-    
-    else{
+        if(op<8)
+            arg2 = atoi(arg);
+        else
+            strcpy(label,arg);
+    }else{
         j++; //skip past the '$'
         if (instr[j]=='s')
             arg2 = s[instr[j+1]-'0'];
@@ -181,8 +215,6 @@ void operate(char * instr,int s[8],int t[10]){
         else
             arg2 = 0;
     }
-    
-    //printf("arg1: %d\targ2: %d\n",arg1,arg2);
     
     //perform operation & store result in register
     switch (op/2) {
@@ -210,11 +242,17 @@ void operate(char * instr,int s[8],int t[10]){
             else
                 t[store] = (arg1 < arg2);
             break;
+        case 4://branch operation
+            branch = (op%2) ? arg1==arg2 : arg1!=arg2;
+            break;
             
         default:
             break;
     }
-    
+    if (branch){
+        return 1+which_label(label,labels,label_count);
+    }
+    return 0;
 }
 
 //print out a specified number of dots
@@ -244,18 +282,7 @@ void print_stars(int stars){
     }
 }
 
-/*
- //print out the stages
- void print_stages(int stage,int repeat_stage,int repeat_cnt){
- for(int i=0;i<stage;i++){
- if (i+1==repeat_stage){
- for(int j=0;j<repeat_cnt;j++)
- printf("\t%s",stages[i]);
- }else
- printf("\t%s",stages[i]);
- }
- }
- */
+
 
 //print out the stages
 void print_stages(int stage,int repeat_stage,int repeat_cnt){
@@ -305,8 +332,23 @@ void print_registers(int s[8],int t[10]){
     }
 }
 
+//make an array of only instructions, without labels
+void extract_instructions(char input[16][128],char instr[16][128],int len,int label_idx[5]){
+    int idx_count = 0;
+    int instr_count = 0;
+    for(int i=0;i<len;i++){
+        if (i==label_idx[idx_count]){
+            idx_count++;
+        }else{
+            strcpy(instr[instr_count],input[i]);
+            instr_count++;
+        }
+    }
+}
 
-void simulation(char input[5][128],int len, int forward){
+
+
+void simulation(char str_in[16][128],int len, int forward){
     printf("START OF SIMULATION ");
     if(!forward){
         printf("(no forwarding)\n");
@@ -319,25 +361,42 @@ void simulation(char input[5][128],int len, int forward){
     //initialize all register values
     int s[8] = {0,0,0,0,0,0,0,0};
     int t[10] = {0,0,0,0,0,0,0,0,0,0};
+    
+    //get an array of only instructions (no labels) & mark where the labels are
+    char instr[16][128];
+    char labels[5][128];
+    int label_idx[5];
+    label_idx[0]=100;
+    int label_count = labels_check(str_in,len,labels,label_idx);
+    extract_instructions(str_in,instr,len,label_idx);
+    len = len - label_count;
+    //create an array to store all instructions (including repeated ones)
+    char all_instr[32][128];
+    for(int x=0;x<len;x++){
+        strcpy(all_instr[x],instr[x]);
+    }
+    
     //check if nops are needed
-    int nops[len];
+    int nops[32];
+    //skip nops if using forwarding
     if(forward){
-        for(int x=0;x<len;x++)
+        for(int x=0;x<32;x++)
             nops[x]=0;
     }else
-        nops_check(input,len,nops);
+        nops_check(instr,len,nops);
     //keep track of which stage each instruction is on
-    int status[len];
-    for(int x=0;x<len;x++)
+    int status[32];
+    for(int x=0;x<32;x++)
         status[x]=0;
     
     //print simulation steps
     int cycle = 0;
+    int length = len;//length of all instr
     int start_nops = 0;
     while (1){
         cycle++;
         printf("CPU Cycles ===>     1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16\n");
-        for(int i=0;i<MIN(cycle,len);i++){
+        for(int i=0;i<MIN(cycle,length);i++){
             //handle incrementing which stage each intruction is on based how many nops
             switch (nops[i]) {
                 case 1:
@@ -369,8 +428,15 @@ void simulation(char input[5][128],int len, int forward){
             }
             
             //update register values if status is at 'WB'
+            //see if a branch is needed
             if (status[i]==5){
-                operate(input[i],s,t);
+                int branch = operate(all_instr[i],s,t,labels,label_count);
+                if(branch){
+                    for(int y=label_idx[branch-1]-branch+1;y<len;y++){
+                        strcpy(all_instr[y+MIN(i+3,length)],instr[y]);
+                    }
+                    length += len-label_idx[branch-1]+branch-1-MAX(length-i-4,0);
+                }
             }
             
             //print out nops when needed
@@ -389,12 +455,13 @@ void simulation(char input[5][128],int len, int forward){
             
             
             //print out each instruction w/ corresponding output stages
-            printf("%s",input[i]);
-            int spaces = 20-strlen(input[i]);
+            printf("%s",all_instr[i]);
+            int spaces = 20-strlen(all_instr[i]);
             for (int j=0;j<spaces;j++) {
                 printf(" ");
             }
             print_dots(i,0);
+            
             switch (nops[i]) {
                 case 1:
                     if (nops[i-1]==2){
@@ -455,7 +522,7 @@ void simulation(char input[5][128],int len, int forward){
         printf("\n");
         print_registers(s,t);
         printf("----------------------------------------------------------------------------------\n");
-        if(status[len-1]==5){
+        if(status[length-1]==5 || cycle==16){
             break;
         }
     }
@@ -475,7 +542,7 @@ int main(int argc,char * argv[]){
     
     //read input file
     FILE* file;
-    char str_in[5][128];
+    char str_in[16][128];
     file = fopen(argv[2],"r");
     int i = 0;
     while(fgets(str_in[i],128,file)){
