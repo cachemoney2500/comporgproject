@@ -325,9 +325,8 @@ void simulation(char input[5][128],int len, int forward){
     nops_check(input,len,nops);
     //keep track of which stage each instruction is on
     int status[len];
-    status[0]=0;
-    for(int x=1;x<len;x++)
-        status[x]=-1;
+    for(int x=0;x<len;x++)
+        status[x]=0;
     
     //print simulation steps
     int cycle = 0;
