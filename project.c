@@ -440,7 +440,7 @@ void simulation(char input[5][128],int len, int forward){
                     if (status[i]<0)
                         print_dots(16-i,1);
                     else{
-                        print_dots(16-MIN(5,status[i]+(1*MIN(1,i)))-i,1);
+                        print_dots(16-MIN(5,status[i])-i,1);
                     }
                     break;
             }
