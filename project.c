@@ -321,7 +321,11 @@ void simulation(char input[5][128],int len, int forward){
     int t[10] = {0,0,0,0,0,0,0,0,0,0};
     //check if nops are needed
     int nops[len];
-    nops_check(input,len,nops);
+    if(forward){
+        for(int x=0;x<len;x++)
+            nops[x]=0;
+    }else
+        nops_check(input,len,nops);
     //keep track of which stage each instruction is on
     int status[len];
     for(int x=0;x<len;x++)
