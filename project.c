@@ -1,6 +1,6 @@
 //
 //  project.c
-//  
+//
 //
 //  Created by Courtney Moran on 4/21/19.
 //
@@ -121,7 +121,7 @@ int parse_instr(char * str){
         j++;
     }
     instr[j] = '\0';
-
+    
     
     for (int i=0;i<10;i++){
         if (strcmp(instr,instructions[i])==0)
@@ -171,7 +171,7 @@ void operate(char * instr,int s[8],int t[10]){
         //convert argument to an integer
         arg2 = atoi(arg);
     }
-
+    
     else{
         j++; //skip past the '$'
         if (instr[j]=='s')
@@ -225,14 +225,14 @@ void print_dots(int dots,int before_or_after){
         //printf("%d",i);
         //printf("\n");
         if (before_or_after == 1 && i == dots-1) {
-          printf(".");
-          return;
-        } 
-
+            printf(".");
+            return;
+        }
+        
         else {
-
+            
             printf(".   ");
-
+            
         }
     }
 }
@@ -245,17 +245,17 @@ void print_stars(int stars){
 }
 
 /*
-//print out the stages
-void print_stages(int stage,int repeat_stage,int repeat_cnt){
-    for(int i=0;i<stage;i++){
-        if (i+1==repeat_stage){
-            for(int j=0;j<repeat_cnt;j++)
-                printf("\t%s",stages[i]);
-        }else
-            printf("\t%s",stages[i]);
-    }
-}
-*/
+ //print out the stages
+ void print_stages(int stage,int repeat_stage,int repeat_cnt){
+ for(int i=0;i<stage;i++){
+ if (i+1==repeat_stage){
+ for(int j=0;j<repeat_cnt;j++)
+ printf("\t%s",stages[i]);
+ }else
+ printf("\t%s",stages[i]);
+ }
+ }
+ */
 
 //print out the stages
 void print_stages(int stage,int repeat_stage,int repeat_cnt){
@@ -265,7 +265,7 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
                 printf("%s",stages[i]);
                 int spaces = 4 - strlen(stages[i]);
                 for(int k=0;k<spaces;k++) {
-                  printf(" ");
+                    printf(" ");
                 }
             }
         }
@@ -273,7 +273,7 @@ void print_stages(int stage,int repeat_stage,int repeat_cnt){
             printf("%s",stages[i]);
             int spaces = 4 - strlen(stages[i]);
             for(int k=0;k<spaces;k++) {
-              printf(" ");
+                printf(" ");
             }
         }
     }
@@ -284,7 +284,7 @@ void print_registers(int s[8],int t[10]){
     int i;
     for (i=0;i<8;i++){
         if(i%4 == 3){
-        printf("$s%d = %d",i,s[i]);
+            printf("$s%d = %d",i,s[i]);
         }
         else{
             printf("$s%d = %-14d",i,s[i]);
@@ -292,7 +292,7 @@ void print_registers(int s[8],int t[10]){
         if(i%4==3)
             printf("\n");
     }
-
+    
     for (i=0;i<10;i++){
         if(i%4 == 3 || i==9){
             printf("$t%d = %d",i,t[i]);
@@ -307,7 +307,6 @@ void print_registers(int s[8],int t[10]){
 
 
 void simulation(char input[5][128],int len, int forward){
-    int num_nop=0;
     printf("START OF SIMULATION ");
     if(!forward){
         printf("(no forwarding)\n");
@@ -316,7 +315,7 @@ void simulation(char input[5][128],int len, int forward){
         printf("(forwarding)\n");
     }
     printf("----------------------------------------------------------------------------------\n");
-
+    
     //initialize all register values
     int s[8] = {0,0,0,0,0,0,0,0};
     int t[10] = {0,0,0,0,0,0,0,0,0,0};
@@ -370,7 +369,7 @@ void simulation(char input[5][128],int len, int forward){
                 operate(input[i],s,t);
             }
             
-              //print out nops when needed
+            //print out nops when needed
             if (start_nops){
                 if(nops[i]&& !nops[i-1]){
                     for(int j=0;j<nops[i];j++){
@@ -383,13 +382,13 @@ void simulation(char input[5][128],int len, int forward){
                     }
                 }
             }
-
-
-              //print out each instruction w/ corresponding output stages
+            
+            
+            //print out each instruction w/ corresponding output stages
             printf("%s",input[i]);
             int spaces = 20-strlen(input[i]);
             for (int j=0;j<spaces;j++) {
-              printf(" ");
+                printf(" ");
             }
             print_dots(i,0);
             switch (nops[i]) {
@@ -434,8 +433,8 @@ void simulation(char input[5][128],int len, int forward){
                         print_stages(MIN(5,status[i]),2,3);
                         print_dots(16-MIN(5,status[i])-i-2,1);
                     }break;
-
-
+                    
+                    
                 default:
                     print_stages(MIN(5,status[i]),0,0);
                     if (status[i]<0)
@@ -452,15 +451,8 @@ void simulation(char input[5][128],int len, int forward){
         printf("\n");
         print_registers(s,t);
         printf("----------------------------------------------------------------------------------\n");
-        if(num_nop == 0){
-            if(status[len-1]==4){
-                break;
-            }
-        }
-        else{
-            if(status[len-1]==5){
-                break;
-            }
+        if(status[len-1]==5){
+            break;
         }
     }
     
