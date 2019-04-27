@@ -2,7 +2,9 @@
 //  project.c
 //
 //
-//  Created by Courtney Moran on 4/21/19.
+//  Created by Courtney Moran, 
+//  Matthew Solomon, Megan Broga, 
+//  and Christine Koulopoulos
 //
 
 #include <stdio.h>
